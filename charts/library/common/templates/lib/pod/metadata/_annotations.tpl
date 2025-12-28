@@ -35,7 +35,7 @@ Returns the value for annotations
     {{- if hasKey $configmap "enabled" -}}
       {{- $configMapEnabled = $configmap.enabled -}}
     {{- end -}}
-    {{- $configMapIncludeInChecksum := true -}}
+    {{- $configMapIncludeInChecksum := false -}}
     {{- if hasKey $configmap "includeInChecksum" -}}
       {{- $configMapIncludeInChecksum = $configmap.includeInChecksum -}}
     {{- end -}}
@@ -46,7 +46,7 @@ Returns the value for annotations
     {{- end -}}
     {{- $configMapChecksumAddToController := or (empty $includeChecksumInControllers) (has $controllerObject.identifier $includeChecksumInControllers) -}}
     {{- if and $configMapEnabled $configMapIncludeInChecksum $configMapChecksumAddToController -}}
-      {{- $_ := set $configMapsFound $name (toYaml $configmap.data | sha256sum) -}}
+      {{- $_ := set $configMapsFound $name (tpl (toYaml $configmap.data) $rootContext | sha256sum) -}}
     {{- end -}}
   {{- end -}}
   {{- if $configMapsFound -}}
@@ -63,7 +63,7 @@ Returns the value for annotations
     {{- if hasKey $secret "enabled" -}}
       {{- $secretEnabled = $secret.enabled -}}
     {{- end -}}
-    {{- $secretIncludeInChecksum := true -}}
+    {{- $secretIncludeInChecksum := false -}}
     {{- if hasKey $secret "includeInChecksum" -}}
       {{- $secretIncludeInChecksum = $secret.includeInChecksum -}}
     {{- end -}}
@@ -74,7 +74,7 @@ Returns the value for annotations
     {{- end -}}
     {{- $secretChecksumAddToController := or (empty $includeChecksumInControllers) (has $controllerObject.identifier $includeChecksumInControllers) -}}
     {{- if and $secretEnabled $secretIncludeInChecksum $secretChecksumAddToController -}}
-      {{- $_ := set $secretsFound $name (toYaml $secret.stringData | sha256sum) -}}
+      {{- $_ := set $secretsFound $name (tpl (toYaml $secret.stringData) $rootContext | sha256sum) -}}
     {{- end -}}
   {{- end -}}
   {{- if $secretsFound -}}

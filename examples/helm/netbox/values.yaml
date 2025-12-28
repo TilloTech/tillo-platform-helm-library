@@ -1,0 +1,723 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/TilloTech/tillo-platform-helm-library/app-template-4.5.0/charts/other/app-template/values.schema.json
+
+global:
+  # Always appends identifier to resource name
+  alwaysAppendIdentifierToResourceName: true
+
+# Configure options applied to all pods
+defaultPodOptions:
+  automountServiceAccountToken: true
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    privileged: false
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    runAsUser: 1000
+    seccompProfile:
+      type: RuntimeDefault
+
+
+# Configures netbox service account, that can be attached to controllers via the identifier
+serviceAccount:
+   netbox:
+     enabled: true
+     annotations:
+       eks.amazonaws.com/role-arn: arn:aws:iam::xxxxxxxxxxxx:role/xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+controllers:
+  # Configure the main controller
+  netbox:
+    type: deployment
+    replicas: 3
+    strategy: RollingUpdate
+    rollingUpdate:
+      unavailable: 60%
+      surge: 2
+    revisionHistoryLimit: 3
+    serviceAccount:
+      identifier: netbox
+    podDisruptionBudget:
+      maxUnavailable: 1
+    annotations:
+      configmap.reloader.tillo.io/auto: "true"
+    pod:
+      terminationGracePeriodSeconds: 60
+    containers:
+      # Configure the netbox application container
+      netbox:
+        dependsOn: pgbouncer
+        image:
+          # -- image repository
+          repository: netboxcommunity/netbox
+          # -- image tag
+          # this example is not automatically updated, so be sure to use the latest image
+          tag: v4.4-3.4.2
+        envFrom:
+          - config: vars
+        env:
+          POD_IP:
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: status.podIP
+        ports:
+          - name: http
+            containerPort: 8080
+          - name: http-status
+            containerPort: 8081
+        probes:
+          startup:
+            enabled: true
+            type: HTTP
+            path: /status/applications/netbox/processes/running
+            port: http-status
+            spec:
+              failureThreshold: 30
+              periodSeconds: 10
+              timeoutSeconds: 5
+              initialDelaySeconds: 5
+          liveness:
+            enabled: true
+            type: HTTP
+            path: /status/applications/netbox/processes/running
+            port: http-status
+            spec:
+              initialDelaySeconds: 0
+              periodSeconds: 10
+              timeoutSeconds: 2
+              failureThreshold: 3
+          readiness:
+            enabled: true
+            type: HTTP
+            path: /login/
+            spec:
+              initialDelaySeconds: 0
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 4
+        lifecycle:
+          preStop:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  echo "Shutting down nginx unit listener..."
+                  curl -s -X DELETE --unix-socket /opt/unit/unit.sock "http://localhost/config/listeners/*:8080" || true
+                  echo "Sleeping to allow in-flight requests to drain/complete"
+                  sleep 10
+                  echo "Killing unitd to trigger shutdown"
+                  pkill unitd || true
+        resources:
+          limits:
+            memory: 2Gi
+          requests:
+            cpu: 2
+            memory: 2Gi
+
+      # Configure the pgbouncer sidecar (handles connection pooling)
+      pgbouncer:
+        image:
+          repository: edoburu/pgbouncer
+          tag: latest
+          pullPolicy: IfNotPresent
+        envFrom:
+          - config: pgbouncer-config
+        env:
+          DB_USER:
+            valueFrom:
+              dynamicSecretKeyRef:
+                optional: true
+                key: username
+                identifier:
+          DB_PASSWORD:
+            valueFrom:
+              dynamicSecretKeyRef:
+                optional: true
+                key: password
+                identifier:
+          ADMIN_USERS:
+            valueFrom:
+              dynamicSecretKeyRef:
+                optional: true
+                key: username
+                identifier:
+        ports:
+          - name: postgres
+            containerPort: 5432
+        probes:
+          liveness:
+            enabled: true
+            type: tcp
+            port: postgres
+            spec:
+              initialDelaySeconds: 5
+              periodSeconds: 30
+              timeoutSeconds: 3
+              failureThreshold: 3
+          readiness:
+            enabled: true
+            type: tcp
+            port: postgres
+            spec:
+              initialDelaySeconds: 5
+              periodSeconds: 30
+              timeoutSeconds: 3
+              failureThreshold: 3
+        resources:
+          requests:
+            cpu: 10m
+            memory: 100Mi
+        lifecycle:
+          preStop:
+            exec:
+              command: [ "/bin/sh", "-c", "sleep 15 && killall -INT pgbouncer" ]
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+
+      # Configures init containers that spawn before our two primary containers
+    initContainers:
+      init-dirs:
+        image:
+          repository: busybox
+          tag: 1.36.1
+          pullPolicy: IfNotPresent
+        command:
+          - /bin/sh
+          - '-c'
+          - mkdir -p /opt/unit/state /opt/unit/tmp
+          - mkdir -p /run/config/netbox
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+
+  worker:
+    enabled: true
+    type: deployment
+    replicas: 2
+    strategy: RollingUpdate
+    revisionHistoryLimit: 3
+    annotations:
+      configmap.reloader.tillo.io/auto: "true"
+    serviceAccount:
+      identifier: netbox
+    podDisruptionBudget:
+      maxUnavailable: 1
+    pod:
+      terminationGracePeriodSeconds: 90
+    containers:
+      # Configure the netbox worker container
+      worker:
+        dependsOn: pgbouncer
+        image:
+          # -- image repository
+          repository: netboxcommunity/netbox
+          # -- image tag
+          # this example is not automatically updated, so be sure to use the latest image
+          tag: v4.4-3.4.2
+        command:
+          - /opt/netbox/venv/bin/python
+          - /opt/netbox/netbox/manage.py
+          - rqworker
+        envFrom:
+          - config: vars
+        env:
+          POD_IP:
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: status.podIP
+        probes:
+          liveness:
+            enabled: false
+          readiness:
+            enabled: false
+        resources:
+          limits:
+            memory: 300Mi
+          requests:
+            cpu: 10m
+            memory: 200Mi
+      pgbouncer:
+        image:
+          repository: edoburu/pgbouncer
+          tag: latest
+          pullPolicy: IfNotPresent
+        envFrom:
+          - config: pgbouncer-config
+        env:
+          DB_USER:
+            valueFrom:
+              dynamicSecretKeyRef:
+                optional: true
+                key: username
+                identifier:
+          DB_PASSWORD:
+            valueFrom:
+              dynamicSecretKeyRef:
+                optional: true
+                key: password
+                identifier:
+          ADMIN_USERS:
+            valueFrom:
+              dynamicSecretKeyRef:
+                optional: true
+                key: username
+                identifier:
+        ports:
+          - name: postgres
+            containerPort: 5432
+        probes:
+          liveness:
+            enabled: true
+            type: tcp
+            port: postgres
+            spec:
+              initialDelaySeconds: 5
+              periodSeconds: 30
+              timeoutSeconds: 3
+              failureThreshold: 3
+          readiness:
+            enabled: true
+            type: tcp
+            port: postgres
+            spec:
+              initialDelaySeconds: 5
+              periodSeconds: 30
+              timeoutSeconds: 3
+              failureThreshold: 3
+        resources:
+          requests:
+            cpu: 10m
+            memory: 100Mi
+        lifecycle:
+          preStop:
+            exec:
+              command: [ "/bin/sh", "-c", "sleep 15 && killall -INT pgbouncer" ]
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+
+  housekeeping:
+    enabled: true
+    type: cronjob
+    cronjob:
+      suspend: false
+      concurrencyPolicy: Forbid
+      schedule: "0 0 * * *"
+      startingDeadlineSeconds: 30
+      successfulJobsHistory: 3
+      failedJobsHistory: 2
+      ttlSecondsAfterFinished: 28800
+      backoffLimit: 2
+    revisionHistoryLimit: 3
+    containers:
+      housekeeping:
+        image:
+          # -- image repository
+          repository: netboxcommunity/netbox
+          # -- image tag
+          # this example is not automatically updated, so be sure to use the latest image
+          tag: v4.4-3.4.2
+          pullPolicy: Always
+        command:
+          - /opt/netbox/venv/bin/python
+          - /opt/netbox/netbox/manage.py
+          - housekeeping
+        env:
+          HOUSEKEEPING_INTERVAL: '20'
+          DB_HOST: postgres-rw.postgres.svc.cluster.local
+          CONN_MAX_AGE: 300
+          POD_IP:
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: status.podIP
+        probes:
+          liveness:
+            enabled: false
+          readiness:
+            enabled: false
+
+
+service:
+  # Configure a service for the netbox application
+  netbox:
+    controller: netbox
+    primary: true
+    type: ClusterIP
+    ports:
+      http:
+        enabled: true
+        port: 80
+        targetPort: 8080
+        protocol: HTTP
+  # Configure a metrics-service for the netbox application
+  metrics:
+    enabled: true
+    controller: netbox
+    type: ClusterIP
+    ports:
+      http-metrics:
+        enabled: true
+        port: 8080
+        targetPort: 8080
+        protocol: HTTP
+
+ingress:
+  # Configure an Ingress for the main application
+  netbox:
+    className: "alb"
+    annotations:
+      external-dns.alpha.kubernetes.io/ttl: "30"
+    hosts:
+      - host: "netbox.example.local"
+        paths:
+          - path: /
+            pathType: Prefix
+            service:
+              identifier: netbox
+              port: http
+
+persistence:
+  # Configure an empty volume in all controllers & containers
+  netbox-empty:
+    enabled: true
+    type: emptyDir
+    globalMounts:
+      - path: /run/config/netbox
+        readOnly: false
+
+  # Configures netbox.yaml configMap into all controllers & containers
+  netbox:
+    enabled: true
+    type: configMap
+    name: config
+    globalMounts:
+      - path: /run/config/netbox/netbox.yaml
+        readOnly: true
+        subPath: netbox.yaml
+
+  # Configures secrets into all controllers & containers as a file
+  netbox-secrets:
+    enabled: true
+    type: vaultStaticSecret
+    identifier: secrets
+    defaultMode: 420
+    globalMounts:
+      - path: /run/secrets/netbox
+        readOnly: true
+
+  # Configures database secret into all controllers & containers as a file
+  database-secrets:
+    enabled: true
+    type: vaultDynamicSecret
+    identifier: database
+    defaultMode: 420
+    globalMounts:
+      - path: /run/secrets/database
+        readOnly: true
+
+  # Configures runtime files into select controllers & containers, using advancedMounts to select Key from configMap & destination.
+  config:
+    enabled: true
+    type: configMap
+    name: files
+    advancedMounts:
+      netbox:
+        netbox:
+          - path: /etc/netbox/config/configuration.py
+            readOnly: true
+            subPath: configuration.py
+          - path: /opt/netbox/netbox/netbox/custom_pipeline.py
+            readOnly: true
+            subPath: custom_pipeline.py
+          - path: /opt/netbox/netbox/netbox/local_settings.py
+            readOnly: true
+            subPath: local_settings.py
+          - path: /run/config/extra/auth/social-auth-pipeline.yaml
+            readOnly: true
+            subPath: social-auth-pipeline.yaml
+      worker:
+        worker:
+          - path: /etc/netbox/config/configuration.py
+            readOnly: true
+            subPath: configuration.py
+          - path: /opt/netbox/netbox/netbox/custom_pipeline.py
+            readOnly: true
+            subPath: custom_pipeline.py
+          - path: /opt/netbox/netbox/netbox/local_settings.py
+            readOnly: true
+            subPath: local_settings.py
+          - path: /run/config/extra/auth/social-auth-pipeline.yaml
+            readOnly: true
+            subPath: social-auth-pipeline.yaml
+      housekeeping:
+        housekeeping:
+          - path: /etc/netbox/config/configuration.py
+            readOnly: true
+            subPath: configuration.py
+          - path: /opt/netbox/netbox/netbox/custom_pipeline.py
+            readOnly: true
+            subPath: custom_pipeline.py
+          - path: /opt/netbox/netbox/netbox/local_settings.py
+            readOnly: true
+            subPath: local_settings.py
+          - path: /run/config/extra/auth/social-auth-pipeline.yaml
+            readOnly: true
+            subPath: social-auth-pipeline.yaml
+
+  # Configures nginx-unit config in our primary controller & container only
+  nginx-unit:
+    enabled: true
+    type: configMap
+    name: nginx-unit
+    advancedMounts:
+      netbox:
+        netbox:
+          - path: /run/config/netbox/nginx-unit.json
+            readOnly: true
+            subPath: nginx-unit.json
+
+  # Configures tmp emptyDir in all Controllers & containers backed by Memory
+  netbox-tmp:
+    enabled: true
+    type: emptyDir
+    medium: Memory
+    globalMounts:
+      - path: /tmp
+        readOnly: false
+
+  # Configures emptyDirt at select controllers & containers backed by Memory
+  optunit:
+    enabled: true
+    type: emptyDir
+    medium: Memory
+    advancedMounts:
+      netbox:
+        init-dirs:
+          - path: /opt/unit
+            readOnly: false
+        netbox:
+          - path: /opt/unit
+            readOnly: false
+        worker:
+          worker:
+            - path: /opt/unit
+              readOnly: false
+
+
+vaultDynamicSecrets:
+  # Configures a vaultDynamicSecrets CRD that points to a dynamic credential within Vault
+  database:
+    enabled: true
+    mount: internal-postgres
+    path: creds/netbox-application
+    refreshAfter: 30s
+    rolloutRestartControllers:
+      - netbox
+      - worker
+
+vaultStaticSecrets:
+  # Configures a vaultStaticSecrets CRD that points to a KV path within Vault
+  secrets:
+    enabled: true
+    mount: kv
+    path: applications/netbox/secrets
+    type: kv-v2
+    refreshAfter: 5m
+    rolloutRestartControllers:
+      - netbox
+      - worker
+
+onfigMaps:
+  vars:
+    enabled: true
+    data:
+      DB_HOST: 127.0.0.1
+      DB_WAIT_DEBUG: '0'
+      CONN_MAX_AGE: '60'
+      DISABLE_SERVER_SIDE_CURSORS: 'True'
+      UNIT_CONFIG: /run/config/netbox/nginx-unit.json
+      SUPERUSER_NAME: admin
+      SUPERUSER_EMAIL: admin@example.com
+      SKIP_STARTUP_SCRIPTS: 'true'
+      SKIP_SUPERUSER: 'true'
+      NETBOX_DELETE_LEGACY_DATA: '1'
+
+  pgbouncer:
+    enabled: true
+    data:
+      AUTH_TYPE: scram-sha-256
+      DB_HOST: postgres-rw.postgres.svc.cluster.local
+      DB_NAME: netbox
+
+      MAX_CLIENT_CONN: '300'
+      DEFAULT_POOL_SIZE: '20'
+      RESERVE_POOL_SIZE: '5'
+      RESERVE_POOL_TIMEOUT: '5.0'
+      POOL_MODE: transaction
+      APPLICATION_NAME_ADD_HOST: '1'
+
+      SERVER_CHECK_DELAY: '30'
+      SERVER_LIFETIME: '1800'
+      SERVER_IDLE_TIMEOUT: '300'
+      CLIENT_IDLE_TIMEOUT: '600'
+      SERVER_RESET_QUERY: DISCARD ALL
+
+      LOG_CONNECTIONS: '0'
+      LOG_DISCONNECTIONS: '0'
+      LOG_POOLER_ERRORS: '1'
+      LOG_STATS: '1'
+      STATS_PERIOD: '60'
+      VERBOSE: '0'
+
+  config:
+    enabled: true
+    data:
+      netbox.yaml: |-
+        ALLOWED_HOSTS: ["*"]
+        ALLOWED_HOSTS_INCLUDES_POD_ID: true
+        DATABASES:
+          default:
+            NAME: "netbox"
+            PORT: 5432
+            OPTIONS:
+              sslmode: "prefer"
+              target_session_attrs: "read-write"
+            DISABLE_SERVER_SIDE_CURSORS: false
+
+        LOGGING: {
+          'version': 1,
+          'disable_existing_loggers': False,
+          'handlers': {
+            'console': {
+              'level': 'INFO',
+              'class': 'logging.StreamHandler',
+              'stream': 'ext://sys.stdout',
+            },
+          },
+          'root': {
+            'handlers': ['console'],
+            'level': 'ERROR',  # Only critical system-level issues bubble up here
+          },
+          'loggers': {
+            'django': {
+              'handlers': ['console'],
+              'level': 'ERROR',  # Capture everything Django emits, including queries, etc.
+              'propagate': False,
+            },
+            'django.request': {
+              'handlers': ['console'],
+              'level': 'WARNING',  # Only warnings/errors from HTTP request/response
+              'propagate': False,
+            },
+            'netbox': {
+              'handlers': ['console'],
+              'level': 'DEBUG',  # Capture debug-level logs for NetBox internals
+              'propagate': False,
+            },
+            'rq.worker': {
+              'handlers': ['console'],
+              'level': 'ERROR',  # Job queue logging — useful for debugging background tasks
+              'propagate': False,
+            },
+          },
+        }
+
+
+  nginx-unit:
+    enabled: true
+    data:
+      nginx-unit.json: |-
+        {
+          "listeners": {
+            "*:8080": {
+              "pass": "routes/main",
+              "forwarded": {
+                "client_ip": "X-Forwarded-For",
+                "protocol": "X-Forwarded-Proto",
+                "source": ["172.16.0.0/12"]
+              }
+            },
+            "*:8081": {
+              "pass": "routes/status",
+              "forwarded": {
+                "client_ip": "X-Forwarded-For",
+                "protocol": "X-Forwarded-Proto",
+                "source": ["172.16.0.0/12"]
+              }
+            }
+          },
+          "routes": {
+            "main": [
+              {
+                "match": {
+                  "uri": "/static/*"
+                },
+                "action": {
+                  "share": "/opt/netbox/netbox${uri}"
+                }
+              },
+              {
+                "action": {
+                  "pass": "applications/netbox"
+                }
+              }
+            ],
+            "status": [
+              {
+                "match": {
+                  "uri": "/status/*"
+                },
+                "action": {
+                  "proxy": "http://unix:/opt/unit/unit.sock"
+                }
+              }
+            ]
+          },
+          "applications": {
+            "netbox": {
+              "type": "python 3",
+              "path": "/opt/netbox/netbox/",
+              "module": "netbox.wsgi",
+              "home": "/opt/netbox/venv",
+              "processes": {
+                "max": 4,
+                "spare": 2,
+                "idle_timeout": 360
+              }
+            }
+          },
+          "access_log": "/dev/stdout"
+        }
+
+
+  files:
+    enabled: true
+    data:
+      configuration.py: |-
+        EXAMPLE FILE
+      custom_pipeline.py: |-
+        EXAMPLE FILE
+      local_settings.py: |-
+        EXAMPLE FILE
+      social-auth-pipeline.yaml: |-
+        EXAMPLE FILE

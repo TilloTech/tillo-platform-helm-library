@@ -43,7 +43,7 @@ jobs:
 
       - name: Get chart details for PR
         id: chart-details-pr
-        uses: bjw-s-labs/helm-charts-actions/get-chart-details@d3d1c2c2ac4e5542b6b404d933efc6dbe71836ea
+        uses: TilloTech/tillo-helm-charts-actions/get-chart-details@d3d1c2c2ac4e5542b6b404d933efc6dbe71836ea
         with:
           path: pull/charts/${{ matrix.chart }}
           validateChartYaml: true
@@ -51,7 +51,7 @@ jobs:
 
       - name: Get chart details for default branch
         id: chart-details-default
-        uses: bjw-s-labs/helm-charts-actions/get-chart-details@d3d1c2c2ac4e5542b6b404d933efc6dbe71836ea
+        uses: TilloTech/tillo-helm-charts-actions/get-chart-details@d3d1c2c2ac4e5542b6b404d933efc6dbe71836ea
         with:
           path: default/charts/${{ matrix.chart }}
           allowChartToNotExist: true
@@ -106,7 +106,7 @@ jobs:
         uses: jdx/mise-action@146a28175021df8ca24f8ee1828cc2a60f980bd5 # v3.5.1
 
       - name: Dereference JSON schema
-        uses: bjw-s-labs/helm-charts-actions/dereference-json-schema@d3d1c2c2ac4e5542b6b404d933efc6dbe71836ea
+        uses: TilloTech/tillo-helm-charts-actions/dereference-json-schema@d3d1c2c2ac4e5542b6b404d933efc6dbe71836ea
         with:
           schemaFile: "charts/${{ matrix.chart }}/values.schema.json"
           outputFile: "charts/${{ matrix.chart }}/values.schema.json"
@@ -117,8 +117,8 @@ jobs:
           COMMON_LIBRARY_LOCATION: ${{ github.workspace }}/charts/library/common
         working-directory: charts/${{ matrix.chart }}
         run: |
-          yq -i '. |= .dependencies |= map(select(.name == "common" and .repository == "https://bjw-s-labs.github.io/helm-charts").version = ">0.0.0-0")' Chart.yaml
-          yq -i '. |= .dependencies |= map(select(.name == "common" and .repository == "https://bjw-s-labs.github.io/helm-charts").repository = "file://" + strenv(COMMON_LIBRARY_LOCATION))' Chart.yaml
+          yq -i '. |= .dependencies |= map(select(.name == "common" and .repository == "https://TilloTech.github.io/tillo-platform-helm-library").version = ">0.0.0-0")' Chart.yaml
+          yq -i '. |= .dependencies |= map(select(.name == "common" and .repository == "https://TilloTech.github.io/tillo-platform-helm-library").repository = "file://" + strenv(COMMON_LIBRARY_LOCATION))' Chart.yaml
           echo "::group::Modified Chart.yaml"
           cat Chart.yaml
           echo "::endgroup::"

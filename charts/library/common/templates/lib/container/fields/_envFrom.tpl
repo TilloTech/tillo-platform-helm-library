@@ -41,12 +41,52 @@ envFrom field used by the container.
             {{- fail (printf "No secret configured with identifier '%s'" .secretRef.identifier) -}}
           {{- end -}}
 
-          {{- $_ := set $item "secretRef" (dict "name" $secret.name) -}}
+          {{- $_ := set $item "secretRef" (dict "name" (printf "%s" $secret.name)) -}}
         {{- else -}}
           {{- $_ := set $item "secretRef" (dict "name" (tpl .secretRef.name $rootContext)) -}}
         {{- end -}}
         {{- if not (empty (dig "optional" nil .secretRef)) -}}
           {{- $_ := set $item.secretRef "optional" .secretRef.optional -}}
+        {{- end -}}
+
+      {{- else if hasKey . "staticSecret" -}}
+        {{- $secret := include "bjw-s.common.lib.vaultStaticSecret.getByIdentifier" (dict "rootContext" $rootContext "id" .staticSecret) | fromYaml -}}
+        {{- $secretName := default (tpl .staticSecret $rootContext) $secret.name -}}
+        {{- $_ := set $item "secretRef" (dict "name" (printf "%s" $secretName)) -}}
+
+      {{- else if hasKey . "staticSecretRef" -}}
+        {{- if not (empty (dig "identifier" nil .staticSecretRef)) -}}
+          {{- $secret := include "bjw-s.common.lib.vaultStaticSecret.getByIdentifier" (dict "rootContext" $rootContext "id" .staticSecretRef.identifier) | fromYaml -}}
+          {{- if empty $secret -}}
+            {{- fail (printf "No vaultStaticSecret configured with identifier '%s'" .staticSecretRef.identifier) -}}
+          {{- end -}}
+
+          {{- $_ := set $item "secretRef" (dict "name" (printf "%s" $secret.name)) -}}
+        {{- else -}}
+          {{- $_ := set $item "secretRef" (dict "name" (tpl .staticSecretRef.name $rootContext)) -}}
+        {{- end -}}
+        {{- if not (empty (dig "optional" nil .staticSecretRef)) -}}
+          {{- $_ := set $item.secretRef "optional" .staticSecretRef.optional -}}
+        {{- end -}}
+
+        {{- else if hasKey . "dynamicSecret" -}}
+        {{- $secret := include "bjw-s.common.lib.vaultDynamicSecret.getByIdentifier" (dict "rootContext" $rootContext "id" .dynamicSecret) | fromYaml -}}
+        {{- $secretName := default (tpl .dynamicSecret $rootContext) $secret.name -}}
+        {{- $_ := set $item "secretRef" (dict "name" (printf "%s" $secretName)) -}}
+
+      {{- else if hasKey . "dynamicSecretRef" -}}
+        {{- if not (empty (dig "identifier" nil .dynamicSecretRef)) -}}
+          {{- $secret := include "bjw-s.common.lib.vaultDynamicSecret.getByIdentifier" (dict "rootContext" $rootContext "id" .dynamicSecretRef.identifier) | fromYaml -}}
+          {{- if empty $secret -}}
+            {{- fail (printf "No vaultDynamicSecret configured with identifier '%s'" .dynamicSecretRef.identifier) -}}
+          {{- end -}}
+
+          {{- $_ := set $item "secretRef" (dict "name" (printf "%s" $secret.name)) -}}
+        {{- else -}}
+          {{- $_ := set $item "secretRef" (dict "name" (tpl .dynamicSecretRef.name $rootContext)) -}}
+        {{- end -}}
+        {{- if not (empty (dig "optional" nil .dynamicSecretRef)) -}}
+          {{- $_ := set $item.secretRef "optional" .dynamicSecretRef.optional -}}
         {{- end -}}
       {{- end -}}
 

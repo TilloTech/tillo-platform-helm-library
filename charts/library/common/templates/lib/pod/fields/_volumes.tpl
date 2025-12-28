@@ -72,6 +72,54 @@ Returns the value for volumes
         {{- $_ := set $volume.configMap "items" . -}}
       {{- end -}}
 
+    {{- /* Vault static secret persistence type */ -}}
+    {{- else if eq $persistenceValues.type "vaultStaticSecret" -}}
+      {{- $objectName := "" -}}
+      {{- if $persistenceValues.name -}}
+        {{- $objectName = tpl $persistenceValues.name $rootContext -}}
+      {{- else if $persistenceValues.identifier -}}
+        {{- $object := (include "bjw-s.common.lib.vaultStaticSecret.getByIdentifier" (dict "rootContext" $rootContext "id" $persistenceValues.identifier) | fromYaml ) -}}
+        {{- if not $object -}}
+          {{fail (printf "No vaultStaticSecret found with this identifier. (persistence item '%s', identifier '%s')" $identifier $persistenceValues.identifier)}}
+        {{- end -}}
+        {{- $objectName = $object.destination.name -}}
+      {{- end -}}
+      {{- $_ := set $volume "secret" dict -}}
+      {{- $_ := set $volume.secret "secretName" $objectName -}}
+      {{- with $persistenceValues.defaultMode -}}
+        {{- $_ := set $volume.secret "defaultMode" . -}}
+      {{- end -}}
+      {{- with $persistenceValues.items -}}
+        {{- $_ := set $volume.secret "items" . -}}
+      {{- end -}}
+      {{- with $persistenceValues.optional -}}
+        {{- $_ := set $volume.secret "optional" . -}}
+      {{- end -}}
+
+    {{- /* Vault static secret persistence type */ -}}
+    {{- else if eq $persistenceValues.type "vaultDynamicSecret" -}}
+      {{- $objectName := "" -}}
+      {{- if $persistenceValues.name -}}
+        {{- $objectName = tpl $persistenceValues.name $rootContext -}}
+      {{- else if $persistenceValues.identifier -}}
+        {{- $object := (include "bjw-s.common.lib.vaultDynamicSecret.getByIdentifier" (dict "rootContext" $rootContext "id" $persistenceValues.identifier) | fromYaml ) -}}
+        {{- if not $object -}}
+          {{fail (printf "No vaultDynamicSecret found with this identifier. (persistence item '%s', identifier '%s')" $identifier $persistenceValues.identifier)}}
+        {{- end -}}
+        {{- $objectName = $object.destination.name -}}
+      {{- end -}}
+      {{- $_ := set $volume "secret" dict -}}
+      {{- $_ := set $volume.secret "secretName" $objectName -}}
+      {{- with $persistenceValues.defaultMode -}}
+        {{- $_ := set $volume.secret "defaultMode" . -}}
+      {{- end -}}
+      {{- with $persistenceValues.items -}}
+        {{- $_ := set $volume.secret "items" . -}}
+      {{- end -}}
+      {{- with $persistenceValues.optional -}}
+        {{- $_ := set $volume.secret "optional" . -}}
+      {{- end -}}
+
     {{- /* Secret persistence type */ -}}
     {{- else if eq $persistenceValues.type "secret" -}}
       {{- $objectName := "" -}}
@@ -91,6 +139,9 @@ Returns the value for volumes
       {{- end -}}
       {{- with $persistenceValues.items -}}
         {{- $_ := set $volume.secret "items" . -}}
+      {{- end -}}
+      {{- with $persistenceValues.optional -}}
+        {{- $_ := set $volume.secret "optional" . -}}
       {{- end -}}
 
     {{- /* emptyDir persistence type */ -}}

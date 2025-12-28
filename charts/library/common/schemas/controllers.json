@@ -22,7 +22,8 @@
               "statefulset",
               "daemonset",
               "cronjob",
-              "job"
+              "job",
+              "rollout"
             ],
             "default": "deployment"
           },

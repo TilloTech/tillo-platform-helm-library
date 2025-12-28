@@ -17,7 +17,7 @@
           "includeInChecksum": {
             "description": "Set to true to include this ConfigMap in the checksum calculation for rolling updates.",
             "type": "boolean",
-            "default": true
+            "default": false
           },
           "includeChecksumInControllers": {
             "description": "Specify a list of controller identifiers for which to include this ConfigMap in the checksum calculation for rolling updates.",

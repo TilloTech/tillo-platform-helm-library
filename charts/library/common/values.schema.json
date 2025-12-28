@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
-  "$id": "https://raw.githubusercontent.com/bjw-s-labs/helm-charts/common-4.5.0/charts/library/common/values.schema.json",
+  "$id": "https://raw.githubusercontent.com/TilloTech/tillo-platform-helm-library/common-4.5.0/charts/library/common/values.schema.json",
   "type": "object",
   "properties": {
     "global": {
@@ -18,7 +18,7 @@
         "alwaysAppendIdentifierToResourceName": {
           "description": "Always append identifier slugs to resource names, regardless of the enabled resource count.",
           "type": "boolean",
-          "default": false
+          "default": true
         },
         "propagateGlobalMetadataToPods": {
           "description": "Set to true to propagate global metadata to Pod labels.",
@@ -222,10 +222,17 @@
       "additionalProperties": false
     },
     "rawResources": {
-      "description": "Allows for the inclusion of raw Kubernetes resources that are not supported by the chart otherwise​",
+      "description": "Allows for the inclusion of raw Kubernetes resources that are not supported by the chart otherwise",
       "type": "object",
       "additionalProperties": {
         "$ref": "schemas/rawResource.json#/instance"
+      }
+    },
+    "vaultStaticSecrets": {
+      "description": "Allows for the inclusion of Vault Static Secret CRD",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "schemas/vaultStaticSecrets.json#/instance"
       }
     }
   }

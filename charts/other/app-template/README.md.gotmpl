@@ -1,5 +1,5 @@
 {{- define "custom.helm.url" -}}
-https://bjw-s-labs.github.io/helm-charts/
+https://TilloTech.github.io/tillo-platform-helm-library/
 {{- end -}}
 
 {{ template "chart.header" . }}
@@ -24,17 +24,17 @@ https://bjw-s-labs.github.io/helm-charts/
 
 ```bash
 # Add the repository
-helm repo add bjw-s {{template "custom.helm.url"}}
+helm repo add tillo-library {{template "custom.helm.url"}}
 
 # Install the chart
-helm install bjw-s app-template -f values.yaml
+helm install tillo-library app-template -f values.yaml
 ```
 
 ### OCI
 
 ```bash
 # Install the chart
-helm install oci://ghcr.io/bjw-s-labs/helm/app-template -f values.yaml
+helm install oci://ghcr.io/TilloTech/helm/app-template -f values.yaml
 ```
 
 ## Configuration
@@ -44,12 +44,11 @@ The [CI tests](../../library/common-test/ci) contain a number of scenarios that 
 
 ## Upgrade instructions
 
-Upgrade instructions can be found in the [documentation](https://bjw-s-labs.github.io/helm-charts/docs/app-template/#upgrade-instructions).
+Upgrade instructions can be found in the [documentation](https://TilloTech.github.io/tillo-platform-helm-library/docs/app-template/#upgrade-instructions).
 
 ## Support
 
-- See the [Docs](http://bjw-s-labs.github.io/helm-charts/docs/)
-- Open an [issue](https://github.com/bjw-s-labs/helm-charts/issues/new/choose)
-- Join the home-operations [Discord](https://discord.gg/home-operations) community
+- See the [Docs](https://TilloTech.github.io/tillo-platform-helm-library/docs/)
+- Open an [issue](https://github.com/TilloTech/tillo-platform-helm-library/issues/new/choose)
 
 {{ template "helm-docs.versionFooter" . }}

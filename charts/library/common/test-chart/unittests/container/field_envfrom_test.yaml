@@ -5,6 +5,7 @@ templates:
   - common.yaml
 values:
   - ../_values/controllers_main_default_container.yaml
+  - ../_values/vaultstaticsecret_main_default.yaml
 tests:
   - it: default should pass
     documentSelector:
@@ -178,6 +179,74 @@ tests:
           value:
             secretRef:
               name: RELEASE-NAME-secret2
+
+  - it: envFrom staticSecretRef with identifier should resolve and support optional
+    set:
+      controllers.main.containers.main.envFrom:
+        - staticSecretRef:
+            identifier: main
+            optional: true
+    documentSelector:
+      path: $[?(@.kind == "Deployment")].metadata.name
+      value: release-name
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].envFrom[0]
+          value:
+            secretRef:
+              name: release-name
+              optional: true
+
+  - it: envFrom staticSecret (identifier) should resolve to vault secret name
+    set:
+      controllers.main.containers.main.envFrom:
+        - staticSecret: main
+    documentSelector:
+      path: $[?(@.kind == "Deployment")].metadata.name
+      value: release-name
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].envFrom[0]
+          value:
+            secretRef:
+              name: release-name
+
+  - it: envFrom staticSecret (identifier) should resolve to vault secret name
+    set:
+      vaultStaticSecrets:
+        main:
+          forceRename: test
+      controllers.main.containers.main.envFrom:
+        - staticSecret: main
+    documentSelector:
+      path: $[?(@.kind == "Deployment")].metadata.name
+      value: release-name
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].envFrom[0]
+          value:
+            secretRef:
+              name: test
+
+  - it: envFrom staticSecretRef with identifier should resolve and support optional
+    set:
+      vaultStaticSecrets:
+        main:
+          forceRename: test
+      controllers.main.containers.main.envFrom:
+        - staticSecretRef:
+            identifier: main
+            optional: true
+    documentSelector:
+      path: $[?(@.kind == "Deployment")].metadata.name
+      value: release-name
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].envFrom[0]
+          value:
+            secretRef:
+              name: test
+              optional: true
 
   - it: explicit envFrom with optional field should pass
     set:

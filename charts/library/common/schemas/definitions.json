@@ -16,12 +16,21 @@
         "type": "string"
       }
     },
-    "not": {
-      "anyOf": [
-        { "required": ["forceRename", "suffix"] },
-        { "required": ["forceRename", "prefix"] }
-      ]
-    }
+    "allOf": [
+      {
+        "if": {
+          "required": ["forceRename"]
+        },
+        "then": {
+          "not": {
+            "anyOf": [
+              { "required": ["prefix"] },
+              { "required": ["suffix"] }
+            ]
+          }
+        }
+      }
+    ]
   },
 
   "annotations": {
