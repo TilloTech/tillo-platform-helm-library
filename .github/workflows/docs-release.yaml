@@ -34,6 +34,11 @@ jobs:
         with:
           cache: false
 
+      - name: Run UV outside of Mise
+        run: |
+          source .venv/bin/activate
+          uv pip install --upgrade -r docs/requirements.txt
+
       - name: Build and publish docs
         run: |
           source .venv/bin/activate
