@@ -46,5 +46,4 @@ Remove any sections that are not applicable.
 - [ ] Title of the PR conforms to the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) standard.
 - [ ] Scope of the of the PR title contains the chart name.
 - [ ] Chart version in `Chart.yaml` has been bumped according to [Semantic Versioning](https://semver.org/).
-- [ ] Chart `artifacthub.io/changes` changelog annotation has been updated in `Chart.yaml`. See [Artifact Hub documentation](https://artifacthub.io/docs/topics/annotations/helm/#supported-annotations) for more info.
 - [ ] Variables have been documented in the `values.yaml` file.

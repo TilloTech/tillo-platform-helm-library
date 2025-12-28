@@ -2,13 +2,13 @@
 # yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
 
 # Project information
-site_name: bjw-s Helm Charts
-site_url: https://bjw-s-labs.github.io/helm-charts/
-site_author: bjw-s
+site_name: Tillo Platform Library Chart
+site_url: https://TilloTech.github.io/tillo-platform-helm-library/
+site_author: TilloTech
 
 # Repository
-repo_name: bjw-s-labs/helm-charts
-repo_url: https://github.com/bjw-s-labs/helm-charts
+repo_name: TilloTech/tillo-platform-helm-library
+repo_url: https://github.com/TilloTech/tillo-platform-helm-library
 
 # Configuration
 docs_dir: ../../docs
@@ -84,6 +84,11 @@ nav:
               - NFS share: common-library/storage/types/nfs-share.md
               - persistentVolumeClaim: common-library/storage/types/persistentVolumeClaim.md
               - Secret: common-library/storage/types/secret.md
+              - vaultStaticSecret: common-library/storage/types/vaultStaticSecret.md
+              - vaultDynamicSecret: common-library/storage/types/vaultDynamicSecret.md
+      - Vault CRDs:
+          - Vault Static Secrets: common-library/vault-crds/vaultStaticSecrets.md
+          - Vault Dynamic Secrets: common-library/vault-crds/vaultDynamicSecrets.md
       - How To...:
           - common-library/howto/index.md
           - Default container options: common-library/howto/default-container-options.md
@@ -99,5 +104,4 @@ nav:
           - Multiple services with 1 or more controllers: app-template/howto/multiple-services.md
       - Examples:
           - app-template/examples/index.md
-          - Home-Assistant with code-server: app-template/examples/home-assistant-codeserver.md
-          - qBittorrent with Gluetun: app-template/examples/qbittorrent-gluetun.md
+          - Netbox with pgbouncer sidecar: app-template/examples/netbox.md

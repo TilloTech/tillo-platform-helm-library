@@ -1,8 +1,8 @@
 {
   extends: [
-    "github>bjw-s/renovate-config",
-    "github>bjw-s/renovate-config:automerge-github-actions",
-    "github>bjw-s-labs/helm-charts//.github/renovate/custom-managers.json5",
+    "github>TilloTech/platform-renovate-config",
+    "github>TilloTech/platform-renovate-config:automerge-github-actions",
+    "github>TilloTech/tillo-platform-helm-library//.github/renovate/custom-managers.json5",
   ],
   packageRules: [
     {

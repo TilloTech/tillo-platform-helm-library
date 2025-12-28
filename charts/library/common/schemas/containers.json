@@ -184,6 +184,32 @@
             "optional": { "type": "boolean" }
           },
           "oneOf": [{ "required": ["name"] }, { "required": ["identifier"] }]
+        },
+        "staticSecret": {
+          "type": "string"
+        },
+        "staticSecretRef": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": { "type": "string" },
+            "identifier": { "type": "string" },
+            "optional": { "type": "boolean" }
+          },
+          "oneOf": [{ "required": ["name"] }, { "required": ["identifier"] }]
+        },
+        "dynamicSecret": {
+          "type": "string"
+        },
+        "dynamicSecretRef": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": { "type": "string" },
+            "identifier": { "type": "string" },
+            "optional": { "type": "boolean" }
+          },
+          "oneOf": [{ "required": ["name"] }, { "required": ["identifier"] }]
         }
       }
     }

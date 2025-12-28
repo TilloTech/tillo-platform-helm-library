@@ -5,6 +5,7 @@ templates:
   - common.yaml
 values:
   - ../_values/controllers_main_default_container.yaml
+  - ../_values/vaultstaticsecret_main_default.yaml
 tests:
   - it: default should pass
     documentSelector:
@@ -253,3 +254,155 @@ tests:
           value:
             name: someThingElse
             value: value_of_env
+
+  - it: List form staticSecretRef (valueFrom.staticSecretRef) should normalize to staticSecretKeyRef
+    set:
+      controllers.main.containers.main.env:
+        - name: LIST_SECRET
+          valueFrom:
+            staticSecretKeyRef:
+              identifier: main
+              key: secretKey
+    documentSelector:
+      path: $[?(@.kind == "Deployment")].metadata.name
+      value: release-name
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[0]
+          value:
+            name: LIST_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: release-name
+                key: secretKey
+
+  - it: List form staticSecretKeyRef shorthand (identifier only) should normalize and default key to name
+    set:
+      controllers.main.containers.main.env:
+        - name: LIST_SECRET
+          valueFrom:
+            staticSecretKeyRef: main
+    documentSelector:
+      path: $[?(@.kind == "Deployment")].metadata.name
+      value: release-name
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[0]
+          value:
+            name: LIST_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: release-name
+                key: LIST_SECRET
+
+  - it: Map form staticSecretRef (top-level) should normalize to staticSecretKeyRef
+    set:
+      controllers.main.containers.main.env:
+        MAP_SECRET:
+          staticSecretKeyRef:
+            identifier: main
+            key: secretKey
+    documentSelector:
+      path: $[?(@.kind == "Deployment")].metadata.name
+      value: release-name
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[0]
+          value:
+            name: MAP_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: release-name
+                key: secretKey
+
+  - it: Map form staticSecretRef (top-level) should normalize to staticSecretKeyRef with forceRename
+    set:
+      vaultStaticSecrets:
+        main:
+          forceRename: test
+      controllers.main.containers.main.env:
+        MAP_SECRET:
+          staticSecretKeyRef:
+            identifier: main
+            key: secretKey
+    documentSelector:
+      path: $[?(@.kind == "Deployment")].metadata.name
+      value: release-name
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[0]
+          value:
+            name: MAP_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: test
+                key: secretKey
+
+  - it: List form staticSecretRef (valueFrom.staticSecretRef) should normalize to staticSecretKeyRef with forceRename
+    set:
+      vaultStaticSecrets:
+        main:
+          forceRename: test
+      controllers.main.containers.main.env:
+        - name: LIST_SECRET
+          valueFrom:
+            staticSecretKeyRef:
+              identifier: main
+              key: secretKey
+    documentSelector:
+      path: $[?(@.kind == "Deployment")].metadata.name
+      value: release-name
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[0]
+          value:
+            name: LIST_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: test
+                key: secretKey
+
+  - it: List form staticSecretKeyRef shorthand (identifier only) should normalize and default key to name with forceRename
+    set:
+      vaultStaticSecrets:
+        main:
+          forceRename: test
+      controllers.main.containers.main.env:
+        - name: LIST_SECRET
+          valueFrom:
+            staticSecretKeyRef: main
+    documentSelector:
+      path: $[?(@.kind == "Deployment")].metadata.name
+      value: release-name
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[0]
+          value:
+            name: LIST_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: test
+                key: LIST_SECRET
+
+  - it: Map form staticSecretRef (top-level) should normalize to staticSecretKeyRef with forceRename
+    set:
+      vaultStaticSecrets:
+        main:
+          forceRename: test
+      controllers.main.containers.main.env:
+        MAP_SECRET:
+          staticSecretKeyRef:
+            identifier: main
+            key: secretKey
+    documentSelector:
+      path: $[?(@.kind == "Deployment")].metadata.name
+      value: release-name
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[0]
+          value:
+            name: MAP_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: test
+                key: secretKey

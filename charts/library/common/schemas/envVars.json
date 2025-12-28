@@ -26,11 +26,17 @@
     "additionalProperties": false,
     "properties": {
       "value": { "$ref": "#/envVarValue" },
+      "staticSecretKeyRef": { "$ref": "#/staticSecretKeySelectorOrString" },
+      "dynamicSecretKeyRef": { "$ref": "#/dynamicSecretKeySelectorOrString" },
       "dependsOn": {
         "$ref": "#/envVarDependsOn"
       }
     },
-    "required": ["value"]
+    "oneOf": [
+      { "required": ["value"] },
+      { "required": ["staticSecretKeyRef"] },
+      { "required": ["dynamicSecretKeyRef"] }
+    ]
   },
 
   "valueFromListItem": {
@@ -61,7 +67,9 @@
       "fieldRef": { "$ref": "#/fieldRefSelector" },
       "resourceFieldRef": { "$ref": "#/resourceFieldRefSelector" },
       "secretKeyRef": { "$ref": "#/objectKeySelector" },
-      "configMapKeyRef": { "$ref": "#/objectKeySelector" }
+      "configMapKeyRef": { "$ref": "#/objectKeySelector" },
+      "staticSecretKeyRef": { "$ref": "#/staticSecretKeySelectorOrString" },
+      "dynamicSecretKeyRef": { "$ref": "#/dynamicSecretKeySelectorOrString" }
     },
     "required": ["name"],
     "dependencies": {
@@ -69,28 +77,54 @@
         "allOf": [
           { "not": { "required": ["resourceFieldRef"] } },
           { "not": { "required": ["secretKeyRef"] } },
-          { "not": { "required": ["configMapKeyRef"] } }
+          { "not": { "required": ["configMapKeyRef"] } },
+          { "not": { "required": ["staticSecretKeyRef"] } },
+          { "not": { "required": ["dynamicSecretKeyRef"] } }
         ]
       },
       "resourceFieldRef": {
         "allOf": [
           { "not": { "required": ["fieldRef"] } },
           { "not": { "required": ["secretKeyRef"] } },
-          { "not": { "required": ["configMapKeyRef"] } }
+          { "not": { "required": ["configMapKeyRef"] } },
+          { "not": { "required": ["staticSecretKeyRef"] } },
+          { "not": { "required": ["dynamicSecretKeyRef"] } }
         ]
       },
       "secretKeyRef": {
         "allOf": [
           { "not": { "required": ["fieldRef"] } },
           { "not": { "required": ["resourceFieldRef"] } },
-          { "not": { "required": ["configMapKeyRef"] } }
+          { "not": { "required": ["configMapKeyRef"] } },
+          { "not": { "required": ["staticSecretKeyRef"] } },
+          { "not": { "required": ["dynamicSecretKeyRef"] } }
         ]
       },
       "configMapKeyRef": {
         "allOf": [
           { "not": { "required": ["fieldRef"] } },
           { "not": { "required": ["resourceFieldRef"] } },
-          { "not": { "required": ["secretKeyRef"] } }
+          { "not": { "required": ["secretKeyRef"] } },
+          { "not": { "required": ["staticSecretKeyRef"] } },
+          { "not": { "required": ["dynamicSecretKeyRef"] } }
+        ]
+      },
+      "staticSecretKeyRef": {
+        "allOf": [
+          { "not": { "required": ["fieldRef"] } },
+          { "not": { "required": ["resourceFieldRef"] } },
+          { "not": { "required": ["secretKeyRef"] } },
+          { "not": { "required": ["configMapKeyRef"] } },
+          { "not": { "required": ["dynamicSecretKeyRef"] } }
+        ]
+      },
+      "dynamicSecretKeyRef": {
+        "allOf": [
+          { "not": { "required": ["fieldRef"] } },
+          { "not": { "required": ["resourceFieldRef"] } },
+          { "not": { "required": ["secretKeyRef"] } },
+          { "not": { "required": ["configMapKeyRef"] } },
+          { "not": { "required": ["staticSecretKeyRef"] } }
         ]
       }
     }
@@ -124,6 +158,8 @@
       "resourceFieldRef": { "$ref": "#/resourceFieldRefSelector" },
       "secretKeyRef": { "$ref": "#/objectKeySelector" },
       "configMapKeyRef": { "$ref": "#/objectKeySelector" },
+      "staticSecretKeyRef": { "$ref": "#/staticSecretKeySelectorOrString" },
+      "dynamicSecretKeyRef": { "$ref": "#/dynamicSecretKeySelectorOrString" },
       "dependsOn": { "$ref": "#/envVarDependsOn" }
     },
     "dependencies": {
@@ -131,28 +167,54 @@
         "allOf": [
           { "not": { "required": ["resourceFieldRef"] } },
           { "not": { "required": ["secretKeyRef"] } },
-          { "not": { "required": ["configMapKeyRef"] } }
+          { "not": { "required": ["configMapKeyRef"] } },
+          { "not": { "required": ["staticSecretKeyRef"] } },
+          { "not": { "required": ["dynamicSecretKeyRef"] } }
         ]
       },
       "resourceFieldRef": {
         "allOf": [
           { "not": { "required": ["fieldRef"] } },
           { "not": { "required": ["secretKeyRef"] } },
-          { "not": { "required": ["configMapKeyRef"] } }
+          { "not": { "required": ["configMapKeyRef"] } },
+          { "not": { "required": ["staticSecretKeyRef"] } },
+          { "not": { "required": ["dynamicSecretKeyRef"] } }
         ]
       },
       "secretKeyRef": {
         "allOf": [
           { "not": { "required": ["fieldRef"] } },
           { "not": { "required": ["resourceFieldRef"] } },
-          { "not": { "required": ["configMapKeyRef"] } }
+          { "not": { "required": ["configMapKeyRef"] } },
+          { "not": { "required": ["staticSecretKeyRef"] } },
+          { "not": { "required": ["dynamicSecretKeyRef"] } }
         ]
       },
       "configMapKeyRef": {
         "allOf": [
           { "not": { "required": ["fieldRef"] } },
           { "not": { "required": ["resourceFieldRef"] } },
-          { "not": { "required": ["secretKeyRef"] } }
+          { "not": { "required": ["secretKeyRef"] } },
+          { "not": { "required": ["staticSecretKeyRef"] } },
+          { "not": { "required": ["dynamicSecretKeyRef"] } }
+        ]
+      },
+      "staticSecretKeyRef": {
+        "allOf": [
+          { "not": { "required": ["fieldRef"] } },
+          { "not": { "required": ["resourceFieldRef"] } },
+          { "not": { "required": ["secretKeyRef"] } },
+          { "not": { "required": ["configMapKeyRef"] } },
+          { "not": { "required": ["dynamicSecretKeyRef"] } }
+        ]
+      },
+      "dynamicSecretKeyRef": {
+        "allOf": [
+          { "not": { "required": ["fieldRef"] } },
+          { "not": { "required": ["resourceFieldRef"] } },
+          { "not": { "required": ["secretKeyRef"] } },
+          { "not": { "required": ["configMapKeyRef"] } },
+          { "not": { "required": ["staticSecretKeyRef"] } }
         ]
       }
     }
@@ -166,6 +228,8 @@
       { "$ref": "#/resourceFieldRef" },
       { "$ref": "#/secretKeyRef" },
       { "$ref": "#/configMapKeyRef" },
+      { "$ref": "#/staticSecretKeyRef" },
+      { "$ref": "#/dynamicSecretKeyRef" },
       { "$ref": "#/fileKeyRef" }
     ]
   },
@@ -198,6 +262,94 @@
       "fileKeyRef": { "$ref": "#/FileKeySelector" }
     },
     "required": ["fileKeyRef"]
+  },
+
+
+  "staticSecretKeyRef": {
+    "description": "Reference a key from a Vault-managed Secret using staticSecretKeyRef syntax.",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "staticSecretKeyRef": { "$ref": "#/staticSecretKeySelectorOrString" }
+    },
+    "required": ["staticSecretKeyRef"]
+  },
+
+  "dynamicSecretKeyRef": {
+    "description": "Reference a key from a Vault-managed Secret using dynamicSecretKeyRef syntax.",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "dynamicSecretKeyRef": { "$ref": "#/dynamicSecretKeySelectorOrString" }
+    },
+    "required": ["dynamicSecretKeyRef"]
+  },
+
+
+  "staticSecretKeySelectorOrString": {
+    "description": "Selector for a key in a Vault-managed Secret, or shorthand string identifier.",
+    "oneOf": [
+      { "type": "string" },
+      { "$ref": "#/staticSecretKeySelector" }
+    ]
+  },
+
+  "dynamicSecretKeySelectorOrString": {
+    "description": "Selector for a key in a Vault-managed Secret, or shorthand string identifier (dynamic secret).",
+    "oneOf": [
+      { "type": "string" },
+      { "$ref": "#/dynamicSecretKeySelector" }
+    ]
+  },
+
+  "staticSecretKeySelector": {
+    "description": "Selector for a key in a Vault-managed Secret resolved via vaultStaticSecrets.",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "name": {
+        "description": "Explicit name of the Secret to read (overrides identifier resolution).",
+        "type": "string"
+      },
+      "identifier": {
+        "description": "vaultStaticSecret identifier to resolve the Secret name.",
+        "type": "string"
+      },
+      "key": {
+        "description": "Key within the Secret. Optional when using shorthand; defaults to the env var name during rendering.",
+        "type": "string"
+      },
+      "optional": {
+        "description": "Whether the Secret key is optional.",
+        "type": "boolean"
+      }
+    },
+    "oneOf": [{ "required": ["name"] }, { "required": ["identifier"] }]
+  },
+
+  "dynamicSecretKeySelector": {
+    "description": "Selector for a key in a Vault-managed Secret resolved via vaultDynamicSecrets.",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "name": {
+        "description": "Explicit name of the Secret to read (overrides identifier resolution).",
+        "type": "string"
+      },
+      "identifier": {
+        "description": "vaultDynamicSecret identifier to resolve the Secret name.",
+        "type": "string"
+      },
+      "key": {
+        "description": "Key within the Secret. Optional when using shorthand; defaults to the env var name during rendering.",
+        "type": "string"
+      },
+      "optional": {
+        "description": "Whether the Secret key is optional.",
+        "type": "boolean"
+      }
+    },
+    "oneOf": [{ "required": ["name"] }, { "required": ["identifier"] }]
   },
 
   "fieldRef": {

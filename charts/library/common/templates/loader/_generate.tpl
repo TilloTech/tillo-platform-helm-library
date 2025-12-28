@@ -22,4 +22,6 @@ Secondary entrypoint and primary loader for the common chart
   {{- include "bjw-s.common.render.networkpolicies" $rootContext | nindent 0 -}}
   {{- include "bjw-s.common.render.rawResources" $rootContext | nindent 0 -}}
   {{- include "bjw-s.common.render.rbac" $rootContext | nindent 0 -}}
+  {{- include "bjw-s.common.render.vaultStaticSecret" . | nindent 0 -}}
+  {{- include "bjw-s.common.render.vaultDynamicSecret" . | nindent 0 -}}
 {{- end -}}

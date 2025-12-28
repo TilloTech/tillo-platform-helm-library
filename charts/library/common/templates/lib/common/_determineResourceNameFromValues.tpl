@@ -7,6 +7,11 @@ Determine a recourse name based on Helm values
   {{- $objectValues := .values -}}
   {{- $itemCount := .itemCount -}}
 
+  {{- /* Validate that forceRename is not used with prefix or suffix */ -}}
+  {{- if and $objectValues.forceRename (or $objectValues.prefix $objectValues.suffix) -}}
+    {{- fail "values don't meet the specifications of the schema: forceRename cannot be used with prefix or suffix" -}}
+  {{- end -}}
+
   {{- $objectName := (include "bjw-s.common.lib.chart.names.fullname" $rootContext) -}}
 
   {{- if $objectValues.forceRename -}}

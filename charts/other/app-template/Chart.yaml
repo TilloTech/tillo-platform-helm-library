@@ -9,10 +9,10 @@ maintainers:
     email: me@bjw-s.dev
 dependencies:
   - name: common
-    repository: https://bjw-s-labs.github.io/helm-charts
+    repository: https://TilloTech.github.io/tillo-platform-helm-library
     version: 4.5.0
 sources:
-  - https://github.com/bjw-s-labs/helm-charts
+  - https://github.com/TilloTech/tillo-platform-helm-library
 annotations:
   artifacthub.io/changes: |-
     - kind: changed
@@ -20,6 +20,6 @@ annotations:
         Upgraded the common library to v4.5.0
       links:
         - name: Upgrade notes
-          url: https://bjw-s-labs.github.io/helm-charts/docs/app-template/upgrade-instructions/
+          url: https://TilloTech.github.io/tillo-platform-helm-library/docs/app-template/upgrade-instructions/
         - name: Detailed release notes
-          url: https://github.com/bjw-s-labs/helm-charts/releases/tag/common-4.5.0
+          url: https://github.com/TilloTech/tillo-platform-helm-library/releases/tag/common-4.5.0

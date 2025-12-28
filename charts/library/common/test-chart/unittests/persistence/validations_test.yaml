@@ -25,3 +25,23 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "No secret found with this identifier. (persistence item 'secret', identifier 'doesNotExist')"
+
+  - it: vaultStaticSecret persistence type with invalid identifier reference should fail
+    set:
+      persistence:
+        static:
+          type: vaultStaticSecret
+          identifier: doesNotExist
+    asserts:
+      - failedTemplate:
+          errorMessage: "No vaultStaticSecret found with this identifier. (persistence item 'static', identifier 'doesNotExist')"
+
+  - it: vaultDynamicSecret persistence type with invalid identifier reference should fail
+    set:
+      persistence:
+        dynamic:
+          type: vaultDynamicSecret
+          identifier: doesNotExist
+    asserts:
+      - failedTemplate:
+          errorMessage: "No vaultDynamicSecret found with this identifier. (persistence item 'dynamic', identifier 'doesNotExist')"

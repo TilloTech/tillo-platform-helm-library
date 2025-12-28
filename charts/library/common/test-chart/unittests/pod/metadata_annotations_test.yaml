@@ -68,14 +68,16 @@ tests:
           content:
             globalAnnotation: test
 
-  - it: configMap checksum should be included in pod annotations
+  - it: configMap checksum should be included in pod annotations when enabled
     set:
       configMaps:
         config:
           enabled: true
+          includeInChecksum: true
           data:
             test: value 1
         test_default_enabled:
+          includeInChecksum: true
           data:
             test: value 1
         test_not_in_checksum:
@@ -95,14 +97,16 @@ tests:
           value:
             checksum/configMaps: 66d23d7a53c4e2a523ba85a969696b4ebb78ec5d79ab9c12c210c1569f48511b
 
-  - it: configMap checksum from folder should be included in pod annotations
+  - it: configMap checksum from folder should be included in pod annotations when enabled
     set:
       configMaps:
         config:
           enabled: true
+          includeInChecksum: true
           data:
             test: value 1
-        test_default_enabled:
+        test_enabled:
+          includeInChecksum: true
           includeChecksumInControllers:
             - main
           data:
@@ -112,6 +116,7 @@ tests:
           data:
             test: value 1
         test_not_in_controllers:
+          includeInChecksum: true
           includeChecksumInControllers:
             - other-controller
           data:
@@ -135,25 +140,28 @@ tests:
       - equal:
           path: spec.template.metadata.annotations
           value:
-            checksum/configMaps: e006c1cf3e635b4c63df9c661401e8ad68a1e0a8c7ac9cc7d4ee8576970ce113
+            checksum/configMaps: b32d6c26c2c93a282b42e09c7a6ef7c2d6a73153afa3cb5dedd0d3031381322f
 
-  - it: secret checksum should be included in pod annotations by default
+  - it: secret checksum should be included in pod annotations when enabled
     set:
       secrets:
         secret_1:
+          includeInChecksum: true
           stringData:
             test: value 1
-        secret_2: # default enabled
+        secret_2:
+          includeInChecksum: true
           includeChecksumInControllers:
             - main
           stringData:
-            test_1: value 1
+            test_1: value {{ 1 }}
             test_2: value 2
         test_not_in_checksum:
           includeInChecksum: false
           stringData:
             test: value 1
         test_not_in_controllers:
+          includeInChecksum: true
           includeChecksumInControllers:
             - other-controller
           stringData:

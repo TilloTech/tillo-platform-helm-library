@@ -54,6 +54,8 @@ containers:
 
 You can also create a ConfigMap for shared environment variables:
 
+ConfigMaps can be referenced with `envFrom` & `env`. It should be noted that `env` does not support `configMapKeyRef` lookups via the objects `identifier` key.
+
 ```yaml
 configMaps:
   app-config:
@@ -66,27 +68,106 @@ controllers:
     containers:
       main:
         envFrom:
+          - configMap: app-config
           - configMapRef:
               # Reference an app-template ConfigMap
               identifier: app-config
-
               # Reference a preexisting ConfigMap
               # name: preexisting-configmap-name
+        env:
+          ANOTHER_ENV_VAR:
+            valueFrom:
+              configMapKeyRef:
+                name: '{{ .Release.Name }}-app-config'
+                key: ANOTHER_ENV_VAR
 ```
 
 ## Secrets
 
-Secrets are managed in the same way:
+Secrets can be referenced with `envFrom` & `env`. It should be noted that `env` does not support `secretKeyRef` lookups via the objects `identifier` key.
 
 ```yaml
 secrets:
   app-secrets:
-    SECRET_KEY: "s3cr3t"
+    stringData:
+      SECRET_KEY: "s3cr3t"
 controllers:
   main:
     containers:
       main:
         envFrom:
+          - secret: app-secrets
           - secretRef:
               identifier: app-secrets
+        env:
+          SECRET_KEY:
+            valueFrom:
+              secretKeyRef:
+                name: '{{ .Release.Name }}-app-secrets'
+                key: SECRET_KEY
+```
+
+## Vault Static Secrets (CRD)
+
+Vault Static Secrets are managed in the same way but do support `identifier` lookups on both `envFrom` & `env`
+
+```yaml
+vaultStaticSecrets:
+  secrets:
+    enabled: true
+    mount: kv
+    type: kv-v2
+    refreshAfter: 5m
+    hmacSecretData: true
+    path: main/secrets
+    rolloutRestartControllers:
+      - main
+controllers:
+  main:
+    containers:
+      main:
+        envFrom:
+          - staticSecret: secrets
+          - staticSecretRef:
+              identifier: secrets
+        env:
+          SECRET_KEY:
+            valueFrom:
+              staticSecretKeyRef:
+                identifier: secrets
+                key: SECRET_KEY
+```
+
+## Vault Dynamic Secrets (CRD)
+
+Vault Dynamic Secrets are managed in the same way but do support `identifier` lookups on both `envFrom` & `env`
+
+```yaml
+vaultDynamicSecrets:
+  database:
+    enabled: true
+    refreshAfter: 30s
+    mount: database
+    path: creds/database
+    rolloutRestartControllers:
+      - main
+controllers:
+  main:
+    containers:
+      main:
+        envFrom:
+          - dynamicSecret: database
+          - dynamicSecretRef:
+              identifier: database
+        env:
+          DB_USER:
+            valueFrom:
+              dynamicSecretKeyRef:
+                identifier: database
+                key: username
+          DB_PASSWORD:
+            valueFrom:
+              dynamicSecretKeyRef:
+                identifier: database
+                key: password
 ```
