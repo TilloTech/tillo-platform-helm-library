@@ -1,6 +1,10 @@
 {{- define "custom.helm.url" -}}
 https://TilloTech.github.io/tillo-platform-helm-library/
 {{- end -}}
+{{- define "custom.helm.oci" -}}
+oci://ghcr.io/TilloTech/helm/app-template
+{{- end -}}
+
 
 {{ template "chart.header" . }}
 
@@ -34,7 +38,7 @@ helm install tillo-library app-template -f values.yaml
 
 ```bash
 # Install the chart
-helm install oci://ghcr.io/TilloTech/helm/app-template -f values.yaml
+helm install {{template "custom.helm.oci"}} -f values.yaml
 ```
 
 ## Configuration

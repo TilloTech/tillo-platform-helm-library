@@ -1,6 +1,6 @@
 # common
 
-![Version: 4.5.0](https://img.shields.io/badge/Version-4.5.0-informational?style=flat-square) ![Type: library](https://img.shields.io/badge/Type-library-informational?style=flat-square)
+![Version: 4.6.0](https://img.shields.io/badge/Version-4.6.0-informational?style=flat-square) ![Type: library](https://img.shields.io/badge/Type-library-informational?style=flat-square)
 
 Function library for Helm charts
 
@@ -27,12 +27,23 @@ This is a [Helm Library Chart](https://helm.sh/docs/topics/library_charts/#helm)
 
 Include this chart as a dependency in your `Chart.yaml` e.g.
 
+### Helm Registry
+
 ```yaml
 # Chart.yaml
 dependencies:
   - name: common
-    version: 4.5.0
+    version: 4.6.0
     repository: https://TilloTech.github.io/tillo-platform-helm-library/
+```
+
+### OCI
+
+```yaml
+# Chart.yaml
+  - name: common
+    version: 4.6.0
+    repository: oci://ghcr.io/TilloTech/helm/common
 ```
 
 For more information, take a look at the [Docs](https://TilloTech.github.io/tillo-platform-helm-library/docs/common-library/introduction/).

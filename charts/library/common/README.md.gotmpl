@@ -1,6 +1,9 @@
 {{- define "custom.helm.url" -}}
 https://TilloTech.github.io/tillo-platform-helm-library/
 {{- end -}}
+{{- define "custom.helm.oci" -}}
+oci://ghcr.io/TilloTech/helm/common
+{{- end -}}
 
 {{ template "chart.header" . }}
 
@@ -28,12 +31,24 @@ This is a [Helm Library Chart](https://helm.sh/docs/topics/library_charts/#helm)
 
 Include this chart as a dependency in your `Chart.yaml` e.g.
 
+### Helm Registry
+
 ```yaml
 # Chart.yaml
 dependencies:
   - name: common
     version: {{template "chart.version" .}}
     repository: {{template "custom.helm.url"}}
+```
+
+### OCI
+
+```yaml
+# Chart.yaml
+dependencies:
+  - name: common
+    version: {{template "chart.version" .}}
+    repository: {{template "custom.helm.oci"}}
 ```
 
 For more information, take a look at the [Docs](https://TilloTech.github.io/tillo-platform-helm-library/docs/common-library/introduction/).
