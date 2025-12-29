@@ -2,24 +2,25 @@
 apiVersion: v2
 description: A common powered chart template. This can be useful for small projects that don't have their own chart.
 name: app-template
-version: 4.6.0
+version: 4.6.1
 kubeVersion: ">=1.28.0-0"
 maintainers:
   - name: bjw-s
     email: me@bjw-s.dev
+  - name: platform-team
 dependencies:
   - name: common
     repository: https://TilloTech.github.io/tillo-platform-helm-library
-    version: 4.6.0
+    version: 4.6.1
 sources:
   - https://github.com/TilloTech/tillo-platform-helm-library
 annotations:
   artifacthub.io/changes: |-
     - kind: changed
       description: |-
-        Upgraded the common library to v4.6.0
+        Upgraded the common library to v4.6.1
       links:
         - name: Upgrade notes
           url: https://TilloTech.github.io/tillo-platform-helm-library/docs/app-template/upgrade-instructions/
         - name: Detailed release notes
-          url: https://github.com/TilloTech/tillo-platform-helm-library/releases/tag/common-4.6.0
+          url: https://github.com/TilloTech/tillo-platform-helm-library/releases/tag/common-4.6.1
