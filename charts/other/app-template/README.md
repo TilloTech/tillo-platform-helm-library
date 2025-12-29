@@ -1,6 +1,6 @@
 # app-template
 
-![Version: 4.5.0](https://img.shields.io/badge/Version-4.5.0-informational?style=flat-square)
+![Version: 4.6.0](https://img.shields.io/badge/Version-4.6.0-informational?style=flat-square)
 
 A common powered chart template. This can be useful for small projects that don't have their own chart.
 
@@ -16,7 +16,7 @@ Kubernetes: `>=1.28.0-0`
 
 | Repository | Name | Version |
 |------------|------|---------|
-| https://TilloTech.github.io/tillo-platform-helm-library | common | 4.5.0 |
+| https://TilloTech.github.io/tillo-platform-helm-library | common | 4.6.0 |
 
 ## Installing the Chart
 
