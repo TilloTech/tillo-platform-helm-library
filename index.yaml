@@ -12,7 +12,7 @@ entries:
             - name: Detailed release notes
               url: https://github.com/TilloTech/tillo-platform-helm-library/releases/tag/common-4.6.0
     apiVersion: v2
-    created: "2025-12-29T00:54:55.57529331Z"
+    created: "2025-12-29T00:57:01.441639038Z"
     dependencies:
     - name: common
       repository: https://TilloTech.github.io/tillo-platform-helm-library
@@ -43,9 +43,9 @@ entries:
           description: |-
             Fixed checksum annotation when templates are used in ConfigMaps and Secrets.
     apiVersion: v2
-    created: "2025-12-29T00:54:55.563545949Z"
+    created: "2025-12-29T00:57:01.43438442Z"
     description: Function library for Helm charts
-    digest: cfe9216bd3d2f2ff1bcbc8b272df7587819cafe802b31c552918f1143775ed10
+    digest: f8fb59b95464779098f23cf78bc3f825d7014b5546876399b11092aa9b46088e
     home: https://github.com/TilloTech/tillo-platform-helm-library/tree/main/charts/library/common
     keywords:
     - common
@@ -74,7 +74,7 @@ entries:
           description: |-
             Fixed checksum annotation when templates are used in ConfigMaps and Secrets.
     apiVersion: v2
-    created: "2025-12-29T00:54:55.559846472Z"
+    created: "2025-12-29T00:57:01.430805655Z"
     description: Function library for Helm charts
     digest: 8987cf80e6e932ef00b421cbd53b7fa3f82c5aefb71fbee9e0589f9484b26ede
     home: https://github.com/TilloTech/tillo-platform-helm-library/tree/main/charts/library/common
@@ -93,4 +93,4 @@ entries:
     urls:
     - https://TilloTech.github.io/tillo-platform-helm-library/library/common-4.6.0.tgz
     version: 4.6.0
-generated: "2025-12-29T00:54:55.555265409Z"
+generated: "2025-12-29T00:57:01.418866003Z"
